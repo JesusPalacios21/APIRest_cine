@@ -2,21 +2,35 @@ import { pool } from "../db.js"
 
 //Logica (backend) de cada endpoint
 export const getPeliculas = async (req, res) => {
-  const [rows] = await pool.query("SELECT *FROM peliculas")
-  res.json(rows)
+  try{
+    const [rows] = await pool.query("SELECT *FROM peliculas")
+    res.json(rows)
+  }catch(error){
+    return res.status(500).json({
+      message: 'No concretó la consulta'
+    })
+  }
 }
 
 export const getPeliculaByid = async (req, res) => {
-  const [rows] = await pool.query("SELECT *FROM peliculas WHERE id = ?", [req.params.id])
-  if(rows.length <= 0) return res.status(404).json({
-    message: 'No existe Pelicula con este ID'
-  })
-  res.json(rows)
+  try{
+    const [rows] = await pool.query("SELECT *FROM peliculas WHERE id = ?", [req.params.id])
+    if(rows.length <= 0) return res.status(404).json({
+      message: 'No existe Pelicula con este ID'
+    })
+    res.json(rows)
+  }catch(error){
+    return res.status(500).json({
+      message: 'No se concretó la consulta'
+    })
+  }  
 }
 
 //1. Obtener datos del Json (input)
 export const createPeliculas = async (req, res) => {
-  //2. EJecutar la consulta, pasa valores obtenidos
+
+  try {
+      //2. EJecutar la consulta, pasa valores obtenidos
   const {titulo, duracionmin, clasificacion, alanzamiento} = req.body
   const[rows] = await pool.query("INSERT INTO peliculas (titulo, duracionmin, clasificacion, alanzamiento) VALUES(?,?,?,?)", 
   [titulo, duracionmin, clasificacion,alanzamiento])
@@ -28,10 +42,17 @@ export const createPeliculas = async (req, res) => {
     clasificacion,
     alanzamiento
   })
+  } catch (error) {
+    return res.status(500).json({
+      message: 'No se concretó la pelicula'
+    })
+  }
 }
 
 export const updatePeliculas = async (req, res) => {
-  const id = req.params.id
+
+  try {
+    const id = req.params.id
   const {titulo, duracionmin, clasificacion, alanzamiento} = req.body
 
   const querySQL = `
@@ -50,11 +71,17 @@ export const updatePeliculas = async (req, res) => {
   }
 
   res.json({ message: 'Actualización correcta'})
+  } catch (error) {
+    return res.status(500).json({
+      message: 'No se concretó la pelicula'
+    })
+  }
 }
 
 export const deletePeliculas = async (req, res) => {
-  const [result] = await pool.query("DELETE FROM peliculas WHERE id = ?", [req.params.id]);
 
+  try {
+    const [result] = await pool.query("DELETE FROM peliculas WHERE id = ?", [req.params.id]);
   // Si no se encuentra la película
   if (result.affectedRows <= 0) {
     return res.status(404).json({
@@ -66,4 +93,9 @@ export const deletePeliculas = async (req, res) => {
   res.status(200).json({
     message: 'Película eliminada correctamente'
   })
+  } catch (error) {
+    return res.status(500).json({
+      message: 'No se concretó la película'
+    })
+  }
 }
